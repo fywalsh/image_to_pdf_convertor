@@ -2,7 +2,7 @@
 
 The script, ***image_to_pdf_convertor.py***, takes an input directory, traverses each of the sub directories within it and produces a PDF file for each directory it finds which contains image files (".png", ".jpg", ".jpeg", ".bmp").
 
-![Images to PDF Convertor](/images/ImageToPDFConvertorGUI.png "Images to PDF Convertor")
+![Images to PDF Convertor](/images/ImagesToPDFConvertorGUI.png "Images to PDF Convertor")
 
 ## Installation (To run the source code)
 
@@ -15,4 +15,4 @@ ___
 
 ## Usage
 
-The tool has been packaged as a standalone EXE using [PyInstaller](https://pyinstaller.org/en/stable/) and can be run by downloading the EXE (to the relevant location) and double-clicking on it.
+The tool has been packaged as a standalone EXE using [PyInstaller](https://pyinstaller.org/en/stable/) and can be run by downloading the [EXE](ImageToPDFConvertor.exe) (to the relevant location) and double-clicking on it.
