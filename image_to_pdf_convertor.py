@@ -73,7 +73,8 @@ def load_images():
     out_dir = out_dir_var.get() if out_dir_var.get() else in_dir
 
     subdirs = [x[0] for x in os.walk(in_dir)]
-
+	
+    progress_step = 100 / (len(subdirs) - 1)
     for folder in subdirs:
         if folder == in_dir:
             continue
@@ -100,7 +101,7 @@ def load_images():
             progress_area.insert(tk.END, "-------------------------------------\n")
 
         folder_count += 1
-        progress_value += 10
+        progress_value += progress_step
 
     end_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     progress_area.insert(
