@@ -4,16 +4,14 @@ and generates a PDF file for each directory containing image files.
 """
 
 import os
-from datetime import datetime
 import tkinter as tk
-from tkinter import ttk
-from tkinter import scrolledtext
-from tkinter import messagebox
-from tkinter import filedialog
+from datetime import datetime
 from os import listdir
 from os.path import isfile, join
-from PIL import Image
+from threading import Thread
+from tkinter import filedialog, messagebox, scrolledtext, ttk
 
+from PIL import Image
 
 __author__ = "Fiona Walsh"
 __version__ = "1.0.0"
@@ -35,7 +33,7 @@ def set_in_out_directories():
     out_dir_var.set(file_path)
 
 
-def check_empty_for_dir():
+def check_for_empty_dir():
     """
     Checks if an input directory has not been selected.
 
@@ -47,10 +45,14 @@ def check_empty_for_dir():
     if not in_dir_var.get():
         messagebox.showerror("Error", "You must select an input directory first!")
     else:
-        load_images()
+        # Performs processing in the background to stop the GUI hanging
+        daemon = Thread(
+            target=load_images_and_generate_pdf(), daemon=True, name="PDF Generation"
+        )
+        daemon.start()
 
 
-def load_images():
+def load_images_and_generate_pdf():
     """
     Traverses each sub directory (found in the input directory), loads any
     images that are found and generates a PDF
@@ -68,18 +70,17 @@ def load_images():
     )
 
     folder_count = 1
-    progress_value = 10
     in_dir = in_dir_var.get().replace("/", "\\")
     out_dir = out_dir_var.get() if out_dir_var.get() else in_dir
 
     subdirs = [x[0] for x in os.walk(in_dir)]
-	
-    progress_step = 100 / (len(subdirs) - 1)
-    for folder in subdirs:
-        if folder == in_dir:
-            continue
+    if len(subdirs) == 0:
+        progress_step = 100
+    else:
+        progress_step = 100 / len(subdirs)
 
-        progress_bar["value"] = progress_value
+    for folder in subdirs:
+        progress_bar["value"] += progress_step
         mainframe.update_idletasks()
 
         progress_area.insert(
@@ -101,14 +102,15 @@ def load_images():
             progress_area.insert(tk.END, "-------------------------------------\n")
 
         folder_count += 1
-        progress_value += progress_step
 
     end_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     progress_area.insert(
         tk.END,
         "\n#################### " + end_time + " - FINISHED ####################\n\n",
     )
+
     progress_area.configure(state="disabled")
+    progress_area.see("end")
 
     progress_bar.stop()
     progress_bar["value"] = 100
@@ -140,6 +142,7 @@ def generate_pdf(all_images, folder, out_dir):
 
     progress_area.insert(tk.END, "PDF file generated: " + pdf_file_name + "\n")
     progress_area.insert(tk.END, "-------------------------------------\n")
+    progress_area.see("end")
 
 
 def reset_screen():
@@ -184,7 +187,7 @@ ttk.Button(
     mainframe,
     text="(2) Generate PDF File(s)",
     style="Green.TButton",
-    command=check_empty_for_dir,
+    command=check_for_empty_dir,
 ).grid(column=1, row=2, sticky=(tk.W, tk.E))
 s.configure("Blue.TButton", background="blue")
 ttk.Button(
@@ -218,7 +221,7 @@ progress_area.grid(column=1, row=4, columnspan=6, sticky=tk.W + tk.E)
 for child in mainframe.winfo_children():
     child.grid_configure(padx=5, pady=5)
 
-root.bind("<Return>", load_images)
+root.bind("<Return>", load_images_and_generate_pdf)
 
 root.resizable(False, False)
 root.mainloop()
