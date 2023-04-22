@@ -8,7 +8,6 @@ import tkinter as tk
 from datetime import datetime
 from os import listdir
 from os.path import isfile, join
-from threading import Thread
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 
 from PIL import Image
@@ -45,11 +44,7 @@ def check_for_empty_dir():
     if not in_dir_var.get():
         messagebox.showerror("Error", "You must select an input directory first!")
     else:
-        # Performs processing in the background to stop the GUI hanging
-        daemon = Thread(
-            target=load_images_and_generate_pdf(), daemon=True, name="PDF Generation"
-        )
-        daemon.start()
+        load_images_and_generate_pdf()
 
 
 def load_images_and_generate_pdf():
@@ -74,14 +69,17 @@ def load_images_and_generate_pdf():
     out_dir = out_dir_var.get() if out_dir_var.get() else in_dir
 
     subdirs = [x[0] for x in os.walk(in_dir)]
-    if len(subdirs) == 0:
+    total_num_dirs = len(subdirs)
+    if total_num_dirs == 0:
         progress_step = 100
     else:
-        progress_step = 100 / len(subdirs)
+        progress_step = 100 / total_num_dirs
+
+    progress_bar["value"] = 0
 
     for folder in subdirs:
         progress_bar["value"] += progress_step
-        mainframe.update_idletasks()
+        mainframe.update()
 
         progress_area.insert(
             tk.END, "Reading folder #" + str(folder_count) + ": " + folder + "\n"
